@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text to Speech</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>Text to Speech</header>
+      <form action="#">
+        <div class="row">
+          <label> Enter Text </label>
+          <textarea></textarea>
+        </div>
+        <div class="row">
+          <label> Select Voice </label>
+          <div class="outer">
+            <select></select>
+          </div>
+        </div>
+        <button type="submit">Convert To Speech</button>
+      </form>
+      <div class="class_footer">
+        <p> © All rights reserved <b>Arup Mandal</b> </p>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const textarea = document.querySelector("textarea"),
+          voiceList = document.querySelector("select"),
+          speechBtn = document.querySelector("button");
+
+        let synth = speechSynthesis,
+          isSpeaking = true;
+
+        // Function to populate the voice list
+        function voices() {
+          voiceList.innerHTML = ""; // Clear the previous list before updating
+          for (let voice of synth.getVoices()) {
+            let selected = voice.name === "Google US English" ? "selected" : "";
+            let option = `<option value="${voice.name}" ${selected}>${voice.name} (${voice.lang})</option>`;
+            voiceList.insertAdjacentHTML("beforeend", option);
+          }
+        }
+
+        // Populate the voices when voices are loaded/changed
+        synth.addEventListener("voiceschanged", voices);
+
+        // Function to convert text to speech
+        function textToSpeech(text) {
+          let utterance = new SpeechSynthesisUtterance(text);
+          for (let voice of synth.getVoices()) {
+            if (voice.name === voiceList.value) {
+              utterance.voice = voice;
+            }
+          }
+          synth.speak(utterance);
+        }
+
+        // Handle the button click to convert text to speech
+        speechBtn.addEventListener("click", (e) => {
+          e.preventDefault(); // Prevent form submission
+          if (textarea.value !== "") {
+            if (!synth.speaking) {
+              textToSpeech(textarea.value);
+            }
+            if (textarea.value.length > 80) {
+              setInterval(() => {
+                if (!synth.speaking && !isSpeaking) {
+                  isSpeaking = true;
+                  speechBtn.innerText = "Convert To Speech";
+                }
+              }, 500);
+
+              if (isSpeaking) {
+                synth.resume();
+                isSpeaking = false;
+                speechBtn.innerText = "Pause Speech";
+              } else {
+                synth.pause();
+                isSpeaking = true;
+                speechBtn.innerText = "Resume Speech";
+              }
+            } else {
+              speechBtn.innerText = "Convert To Speech";
+            }
+          }
+        });
+
+        // Call voices function initially to populate the list
+        voices();
+      });
+    </script>
+  </body>
+</html>
